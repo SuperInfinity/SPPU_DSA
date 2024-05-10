@@ -1,115 +1,110 @@
+#include <functional>
 #include <iostream>
+#include <utility>
+#include <vector>
+#include <queue>
+#include <map>
+
+#define INT_MAX 100
 
 using namespace std;
 
-class graph
-{
-    private:
-        int cost[100][100];
-        int n;
-    
-    public:
-        graph()
-        {
-            for (int i = 0; i < 100; i++)
-            {
-                for (int j = 0; j < 100; j++)
-                {
-                    cost[i][j] = -1;
-                }
-            }
-        }
-        void ini_graph();
-        void min_cost();
+class City {
+public:
+    string name;
+    vector<pair<City*, int>> neighbors;
+    bool visited;
+    City* parent;
+    int cost;
+
+    City(const string& name) : name(name), visited(false), parent(nullptr), cost(INT_MAX) {}
 };
 
+class Graph {
+public:
+    map<string, City*> cities;
 
-void graph :: ini_graph()
-{
-    cout << "\nEnter number of edges: ";
-    cin >> n;
-    int ans, sv, lv, c;
-    cout << "\n*---Use edges from 0-N---*\n";
-    do
-    {
-        cout << "\nEnter Starting Vertex: ";
-        cin >> sv;
-        cout << "\nEnter Ending vertex: ";
-        cin >> lv;
-        cout << "\nEnter Cost: ";
-        cin >> c;
-
-        cost[sv][lv] = c;
-        cost[lv][sv] = c;
-
-        cout << "Do u wnat to add more edges?(1/0): ";
-        cin >> ans;
-    } while (ans == 1);
-}
-
-void graph :: min_cost()
-{
-    int visited[100], sv, min, ans = 0, v1, v2;
-    for (int i = 0; i < n; i++)
-    {
-        visited[i] = 0;
+    void add_city(City* city) {
+        cities[city->name] = city;
     }
-    cout << "Enter the Starting vertx: ";
-    cin >> sv;
-    visited[sv] = 1;
 
-    for (int k = 0; k < n; k++)
-    {
-        min = 999;
-        for (int i = 0; i < n; i++)
-        {
-            if (visited[i] == 1)
-            {
-                for (int j = 0; j < n; j++)
-                {
-                    if (visited[j] == 0)
-                    {
-                        if (cost[i][j] < min && cost[i][j] != -1)
-                        {
-                            v1 = i;
-                            v2 = j;
-                            min = cost[i][j];
-                        }
-                    }
+    void add_connection(City* city1, City* city2, int cost) {
+        city1->neighbors.push_back({city2, cost});
+        city2->neighbors.push_back({city1, cost});
+    }
+
+    void prim(City* start_city) {
+        // Priority queue to hold cities sorted by cost
+        priority_queue<pair<int, City*>, vector<pair<int, City*>>, greater<pair<int, City*>>> pq;
+
+        // Initialize starting city
+        start_city->cost = 0;
+        pq.push({0, start_city});
+
+        while (!pq.empty()) {
+            City* current_city = pq.top().second;
+            pq.pop();
+
+            if (current_city->visited) {
+                continue;
+            }
+
+            current_city->visited = true;
+
+            // Update costs of neighbors
+            for (auto neighbor : current_city->neighbors) {
+                if (!neighbor.first->visited && neighbor.second < neighbor.first->cost) {
+                    neighbor.first->cost = neighbor.second;
+                    neighbor.first->parent = current_city;
+                    pq.push({neighbor.second, neighbor.first});
                 }
             }
         }
-        ans += cost[v1][v2];
-        visited[v2] = 1;
+
+        // Trace minimum spanning tree (optional)
+        int mst_cost = 0;
+        for (auto city : cities) {
+            if (city.second->parent) {
+                mst_cost += city.second->cost;
+                cout << city.second->parent->name << " -> " << city.second->name << ": " << city.second->cost << endl;
+            }
+        }
+
+        cout << "Total minimum cost: " << mst_cost << endl;
     }
+};
 
-    cout << "\nMinimum Cost is: " << ans << endl;
-}
+int main() {
+    Graph graph;
 
-void menu()
-{
-    graph g;
-    g.ini_graph();
-    int ch;
-    do
-    {    
-        cout << "\n---------Menu---------\n";
-        cout << "\n1.Calculate Minimum Cost: ";
-        cout << "\n2.Exit";
-        cout << "\nUr choice: ";
-        cin >> ch;
-        if (ch == 1)
-        {
-            g.min_cost();
-        }
-        else
-        {
-            break;
-        }
-    } while (ch == 1);
-}
+    // Create cities
+    City* cityA = new City("A");
+    City* cityB = new City("B");
+    City* cityC = new City("C");
+    City* cityD = new City("D");
 
-int main()
-{
-    menu();
+    // Add cities to the graph
+    graph.add_city(cityA);
+    graph.add_city(cityB);
+    graph.add_city(cityC);
+    graph.add_city(cityD);
+
+    // Add connections between cities
+    graph.add_connection(cityA, cityB, 3);
+    graph.add_connection(cityA, cityC, 1);
+    graph.add_connection(cityB, cityC, 3);
+    graph.add_connection(cityB, cityD, 1);
+    graph.add_connection(cityC, cityD, 4);
+    graph.add_connection(cityA, cityD, 1);
+
+    // Perform Prim's algorithm starting from cityA
+    graph.prim(cityA);
+
+    // Free memory
+    delete cityA;
+    delete cityB;
+    delete cityC;
+    delete cityD;
+
+    return 0;
 }
