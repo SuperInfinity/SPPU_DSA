@@ -34,6 +34,7 @@ class Btt
         }
         void create();
         void display();
+        void postorder();
 };
 
 void Btt :: create()
@@ -71,7 +72,7 @@ void Btt :: create()
                 }
                 else
                 {
-                    if (!(t->rf))
+                    if (!(p->rf))
                     {
                         t->r = p->r;
                         p->r = t;
@@ -89,6 +90,31 @@ void Btt :: create()
 }
 
 
+void Btt :: postorder()
+{
+    node *t = root;
+    while (t != head)
+    {
+        cout << " ----> " << t->val;
+        if (!(t->rf))
+        {
+            while (!(t->lf))
+            {
+                if (t->l == head)
+                {
+                    return;
+                }
+                t = t->l;
+            }   
+            t = t->l;
+        }
+        else
+        {
+            t = t->r;
+        }
+    }
+}
+
 void Btt :: display()
 {
     node *t = root;
@@ -101,6 +127,7 @@ void Btt :: display()
             {
                 if (t->r == head)
                 {
+                    cout << endl;
                     return;
                 }
                 t = t->r;
@@ -120,4 +147,5 @@ int main()
     Btt b;
     b.create();
     b.display();
+    b.postorder();
 }

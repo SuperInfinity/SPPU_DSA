@@ -123,5 +123,5 @@ int main()
     f.display();
     f.delete_it();
     f.display();
-    f.search();
+    f.search(); 
 }
